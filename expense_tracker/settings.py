@@ -18,12 +18,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 
 # Add your domain
 ALLOWED_HOSTS = [
-    "expenseinsight.website",                   # your custom domain
-    "www.expenseinsight.website",               # optional www
-    "django-project-ai-production.up.railway.app",  # Railway-generated domain
-    "127.0.0.1",
-    "localhost",
+    "django-project-ai-production.up.railway.app",
+    "expenseinsight.website",
+    "www.expenseinsight.website",
 ]
+
+# SSL settings (let Railway handle SSL)
+SECURE_SSL_REDIRECT = False
 
 # ----------------------
 # APPLICATION DEFINITION
@@ -130,5 +131,6 @@ X_FRAME_OPTIONS = 'DENY'
 # DEFAULT PRIMARY KEY FIELD TYPE
 # ----------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 
