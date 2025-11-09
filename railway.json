@@ -1,9 +1,8 @@
 {
   "build": {
-    "builder": "paketo-buildpacks/python",
-    "buildCommand": "cd Django-Project-AI/expense_tracker && pip install -r requirements.txt",
-    "startCommand": "cd Django-Project-AI/expense_tracker && gunicorn expense_tracker.wsgi"
+    "buildCommand": "cd Django-Project-AI/expense_tracker && pip install -r requirements.txt"
+  },
+  "start": {
+    "command": "cd Django-Project-AI/expense_tracker && gunicorn expense_tracker.wsgi"
   }
 }
-
-
