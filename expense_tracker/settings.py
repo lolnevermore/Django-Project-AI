@@ -23,8 +23,11 @@ ALLOWED_HOSTS = [
     "www.expenseinsight.website",
 ]
 
-# SSL settings (let Railway handle SSL)
+# SSL settings behind Railway proxy
 SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 
 # ----------------------
 # APPLICATION DEFINITION
@@ -131,6 +134,7 @@ X_FRAME_OPTIONS = 'DENY'
 # DEFAULT PRIMARY KEY FIELD TYPE
 # ----------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 
 
