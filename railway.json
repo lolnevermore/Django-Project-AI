@@ -5,3 +5,5 @@
     "startCommand": "cd Django-Project-AI/expense_tracker && gunicorn expense_tracker.wsgi"
   }
 }
+
+
