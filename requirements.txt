@@ -20,5 +20,7 @@ whitenoise==6.11.0
 psycopg[binary]==3.2.11
 dj-database-url==2.1.0
 django-environ==0.10.0
+gunicorn
+
 
 
