@@ -17,7 +17,10 @@ DEBUG = False
 SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 
 # Add your domain
-ALLOWED_HOSTS = ['expenseinsight.website', 'www.expenseinsight.website', 'django-project-ai-production.up.railway.app ]
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS', 
+    'expenseinsight.website,www.expenseinsight.website,localhost,127.0.0.1,0.0.0.0'
+).split(',')
 
 # ----------------------
 # APPLICATION DEFINITION
@@ -124,3 +127,4 @@ X_FRAME_OPTIONS = 'DENY'
 # DEFAULT PRIMARY KEY FIELD TYPE
 # ----------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
