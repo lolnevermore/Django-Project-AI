@@ -12,18 +12,63 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import ExpenseSerializer
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.mail import EmailMessage
+from django.contrib.sites.shortcuts import get_current_site
+
+from .utils import account_activation_token
+
 
 def register(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserCreationForm(request.POST)
+
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('dashboard')
+            user = form.save(commit=False)
+            user.is_active = False  # Require email confirmation
+            user.email = request.POST.get("email")  # Add email to model
+            user.save()
+
+            # Send email
+            current_site = get_current_site(request)
+            subject = "Activate your account"
+            message = render_to_string("expenses/activation_email.html", {
+                "user": user,
+                "domain": current_site.domain,
+                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                "token": account_activation_token.make_token(user),
+            })
+
+            email = EmailMessage(subject, message, to=[user.email])
+            email.send()
+
+            messages.success(request, "Account created! Check your email to activate.")
+            return redirect("login")
+
     else:
         form = UserCreationForm()
-    return render(request, 'expenses/register.html', {'form': form})
+
+    return render(request, "expenses/register.html", {"form": form})
+
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, "Your account is now activated! Please log in.")
+        return redirect("login")
+
+    messages.error(request, "Activation link is invalid.")
+    return redirect("login")
 
 def logout_view(request):
     logout(request)
@@ -202,3 +247,5 @@ def expense_api(request):
             serializer.save(user=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+    
+
