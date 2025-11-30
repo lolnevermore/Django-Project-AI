@@ -18,7 +18,7 @@ from django.utils.encoding import force_bytes
 from django.core.mail import EmailMessage
 from django.contrib.sites.shortcuts import get_current_site
 from .forms import CustomUserCreationForm
-from django import User
+from django.contrib.auth.models import User
 
 from .utils import account_activation_token
 
