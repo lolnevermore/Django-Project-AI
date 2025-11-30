@@ -8,6 +8,10 @@ from django.db.models.functions import TruncMonth
 from datetime import datetime, timedelta
 from .models import Expense, Category, Budget
 from .forms import ExpenseForm, CategoryForm, BudgetForm
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .serializers import ExpenseSerializer
 
 def register(request):
     if request.method == 'POST':
@@ -182,3 +186,19 @@ def budget_delete(request, pk):
         return redirect('budget_list')  # Redirect to budgets list after deletion
 
     return render(request, 'expenses/delete-budget.html', {'budget': budget})
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def expense_api(request):
+    if request.method == 'GET':
+        expenses = Expense.objects.filter(user=request.user)
+        serializer = ExpenseSerializer(expenses, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = ExpenseSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)

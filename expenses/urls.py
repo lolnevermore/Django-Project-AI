@@ -27,4 +27,5 @@ urlpatterns = [
     path('budgets/<int:pk>/delete/', views.budget_delete, name='budget_delete'),
 
     path('api-auth/', include('rest_framework.urls'))
+    path('api/expenses/', views.expense_api, name='expense_api'),
 ]
