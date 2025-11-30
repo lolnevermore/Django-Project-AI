@@ -17,21 +17,21 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.core.mail import EmailMessage
 from django.contrib.sites.shortcuts import get_current_site
+from .forms import CustomUserCreationForm
 
 from .utils import account_activation_token
 
 
 def register(request):
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
 
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = False  # Require email confirmation
-            user.email = request.POST.get("email")  # Add email to model
             user.save()
 
-            # Send email
+            # Send activation email
             current_site = get_current_site(request)
             subject = "Activate your account"
             message = render_to_string("expenses/activation_email.html", {
@@ -48,7 +48,7 @@ def register(request):
             return redirect("login")
 
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
 
     return render(request, "expenses/register.html", {"form": form})
 
