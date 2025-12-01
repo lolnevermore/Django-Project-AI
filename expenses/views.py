@@ -66,7 +66,7 @@ If you did not request this, please ignore this email.
                 email = EmailMultiAlternatives(
                     subject=subject,
                     body=text_message,
-                    from_email=DEFAULT_FROM_EMAIL,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
                     to=[user.email],
                 )
                 email.attach_alternative(html_message, "text/html")
