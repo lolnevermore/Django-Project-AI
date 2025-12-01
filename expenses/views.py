@@ -28,12 +28,23 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = True  # Skip email for now
+            user.is_active = False  # Require email confirmation
             user.save()
-            messages.success(request, "Account created successfully!")
+
+            # Skip email for testing
+            # current_site = get_current_site(request)
+            # subject = "Activate your Expense Tracker account"
+            # message = render_to_string("expenses/activation_email.html", {
+            #     "user": user,
+            #     "domain": current_site.domain,
+            #     "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+            #     "token": account_activation_token.make_token(user),
+            # })
+            # email = EmailMessage(subject, message, to=[user.email])
+            # email.send()
+
+            messages.success(request, "Account created! Check your email to activate your account.")
             return redirect("login")
-        else:
-            messages.error(request, "Please correct the errors below.")
     else:
         form = CustomUserCreationForm()
     return render(request, "expenses/register.html", {"form": form})
