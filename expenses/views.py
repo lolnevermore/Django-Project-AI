@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -22,7 +23,6 @@ from .forms import ExpenseForm, CategoryForm, BudgetForm, CustomUserCreationForm
 from .models import Expense, Category, Budget
 from .serializers import ExpenseSerializer
 from .utils import account_activation_token
-from django.core.mail import EmailMultiAlternatives
 
 
 
@@ -32,12 +32,11 @@ def register(request):
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            # Create user but do not activate yet
             user = form.save(commit=False)
-            user.is_active = False
+            user.is_active = False  # Require email confirmation
             user.save()
 
-            # Send activation email
+            # Prepare activation email
             current_site = get_current_site(request)
             subject = "Activate your Expense Tracker account"
             message = render_to_string("expenses/activation_email.html", {
@@ -46,17 +45,26 @@ def register(request):
                 "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                 "token": account_activation_token.make_token(user),
             })
-            email = EmailMessage(subject, message, to=[user.email])
-            email.send()
 
-            messages.success(request, "Account created! Check your email to activate your account.")
+            # Send activation email
+            try:
+                email = EmailMessage(
+                    subject,
+                    message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[user.email]
+                )
+                email.content_subtype = "html"  # Ensure HTML emails render correctly
+                email.send()
+                messages.success(request, "Account created! Check your email to activate your account.")
+            except Exception as e:
+                logger.error(f"Error sending activation email: {e}")
+                messages.error(request, "Account created, but we couldn't send the activation email. Contact support.")
+
             return redirect("login")
-        else:
-            # Log errors to console for debugging
-            print("Form errors:", form.errors)
-            messages.error(request, "There was an error with your registration. Check console for details.")
     else:
         form = CustomUserCreationForm()
+
     return render(request, "expenses/register.html", {"form": form})
 
 
