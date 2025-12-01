@@ -1,24 +1,29 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout
-from django.contrib import messages
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncMonth
+import logging
 from datetime import datetime, timedelta
-from .models import Expense, Category, Budget
-from .forms import ExpenseForm, CategoryForm, BudgetForm, CustomUserCreationForm
+
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage
+from django.db.models import Sum
+from django.db.models.functions import TruncMonth
+from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from .forms import ExpenseForm, CategoryForm, BudgetForm, CustomUserCreationForm
+from .models import Expense, Category, Budget
 from .serializers import ExpenseSerializer
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.core.mail import EmailMessage
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.auth.models import User
-import logging
 from .utils import account_activation_token
+from django.core.mail import EmailMultiAlternatives
+
 
 
 logger = logging.getLogger(__name__)
@@ -31,22 +36,34 @@ def register(request):
             user.is_active = False  # Require email confirmation
             user.save()
 
-            # Skip email for testing
+            # Send activation email
             current_site = get_current_site(request)
             subject = "Activate your Expense Tracker account"
-            message = render_to_string("expenses/activation_email.html", {
+            context = {
                 "user": user,
                 "domain": current_site.domain,
                 "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                 "token": account_activation_token.make_token(user),
-            })
-            email = EmailMessage(subject, message, to=[user.email])
+            }
+
+            # Render HTML message
+            html_message = render_to_string("expenses/activation_email.html", context)
+            plain_message = f"Hi {user.username},\nPlease activate your account: https://{current_site.domain}/activate/{context['uid']}/{context['token']}/"
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=plain_message,
+                from_email=None,  # will use DEFAULT_FROM_EMAIL
+                to=[user.email],
+            )
+            email.attach_alternative(html_message, "text/html")
             email.send()
 
             messages.success(request, "Account created! Check your email to activate your account.")
             return redirect("login")
     else:
         form = CustomUserCreationForm()
+
     return render(request, "expenses/register.html", {"form": form})
 
 
