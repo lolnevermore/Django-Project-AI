@@ -140,14 +140,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
-EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
-
 ANYMAIL = {
-    "MAILJET_API_KEY": os.environ.get("MAILJET_API_KEY"),
-    "MAILJET_SECRET_KEY": os.environ.get("MAILJET_SECRET_KEY"),
+    "MAILJET_API_KEY": "83e55bf6eafcc0a1d99935e5a9ee66b9",
+    "MAILJET_SECRET_KEY": "144347d43946f55732f5881b51cc3f9c",
 }
+EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
+DEFAULT_FROM_EMAIL = "no-reply@django-project-ai-production.up.railway.app"
 
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@expenseinsight.website")
 
 # DEFAULT PRIMARY KEY
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
