@@ -26,10 +26,9 @@ from .utils import account_activation_token
 def register(request):
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
-
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = False  # Require email confirmation
+            user.is_active = False
             user.save()
 
             # Send activation email
