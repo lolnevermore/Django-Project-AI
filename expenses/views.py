@@ -19,37 +19,26 @@ from django.core.mail import EmailMessage
 from django.contrib.sites.shortcuts import get_current_site
 from .forms import CustomUserCreationForm
 from django.contrib.auth.models import User
-
+import logging
 from .utils import account_activation_token
 
+logger = logging.getLogger(__name__)
 
 def register(request):
     if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
-
-            # Send activation email
-            current_site = get_current_site(request)
-            subject = "Activate your account"
-            message = render_to_string("expenses/activation_email.html", {
-                "user": user,
-                "domain": current_site.domain,
-                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                "token": account_activation_token.make_token(user),
-            })
-
-            email = EmailMessage(subject, message, to=[user.email])
-            email.send()
-
-            messages.success(request, "Account created! Check your email to activate.")
-            return redirect("login")
-
+        try:
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+                # Email logic...
+        except Exception as e:
+            logger.exception("Registration failed!")
+            messages.error(request, "Registration failed. Check server logs.")
+            return redirect("register")
     else:
         form = CustomUserCreationForm()
-
     return render(request, "expenses/register.html", {"form": form})
 
 
