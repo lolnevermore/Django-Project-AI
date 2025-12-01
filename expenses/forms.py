@@ -2,7 +2,6 @@ from django import forms
 from .models import Expense, Category, Budget
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .forms import CustomUserCreationForm
 
 
 class ExpenseForm(forms.ModelForm):
