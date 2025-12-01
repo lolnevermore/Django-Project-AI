@@ -32,38 +32,31 @@ def register(request):
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
+            # Create user but do not activate yet
             user = form.save(commit=False)
-            user.is_active = False  # Require email confirmation
+            user.is_active = False
             user.save()
 
             # Send activation email
             current_site = get_current_site(request)
             subject = "Activate your Expense Tracker account"
-            context = {
+            message = render_to_string("expenses/activation_email.html", {
                 "user": user,
                 "domain": current_site.domain,
                 "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                 "token": account_activation_token.make_token(user),
-            }
-
-            # Render HTML message
-            html_message = render_to_string("expenses/activation_email.html", context)
-            plain_message = f"Hi {user.username},\nPlease activate your account: https://{current_site.domain}/activate/{context['uid']}/{context['token']}/"
-
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=plain_message,
-                from_email=None,  # will use DEFAULT_FROM_EMAIL
-                to=[user.email],
-            )
-            email.attach_alternative(html_message, "text/html")
+            })
+            email = EmailMessage(subject, message, to=[user.email])
             email.send()
 
             messages.success(request, "Account created! Check your email to activate your account.")
             return redirect("login")
+        else:
+            # Log errors to console for debugging
+            print("Form errors:", form.errors)
+            messages.error(request, "There was an error with your registration. Check console for details.")
     else:
         form = CustomUserCreationForm()
-
     return render(request, "expenses/register.html", {"form": form})
 
 
