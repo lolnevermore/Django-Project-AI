@@ -145,7 +145,7 @@ ANYMAIL = {
     "MAILJET_SECRET_KEY": "144347d43946f55732f5881b51cc3f9c",
 }
 EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
-DEFAULT_FROM_EMAIL = "no-reply@django-project-ai-production.up.railway.app"
+DEFAULT_FROM_EMAIL = "tasasr@gmail.com"
 
 
 # DEFAULT PRIMARY KEY
