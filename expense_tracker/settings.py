@@ -139,9 +139,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# -----------------------------------------------------------------------------
-# EMAIL — ANYMAIL (MAILJET)
-# -----------------------------------------------------------------------------
+
 EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
 
 ANYMAIL = {
@@ -151,7 +149,9 @@ ANYMAIL = {
 
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@expenseinsight.website")
 
-# -----------------------------------------------------------------------------
 # DEFAULT PRIMARY KEY
-# -----------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+
+

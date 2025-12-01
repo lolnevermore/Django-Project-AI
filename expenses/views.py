@@ -7,7 +7,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from django.shortcuts import render, redirect, get_object_or_404
@@ -36,30 +36,49 @@ def register(request):
             user.is_active = False  # Require email confirmation
             user.save()
 
-            # Prepare activation email
+            # Prepare email data
             current_site = get_current_site(request)
             subject = "Activate your Expense Tracker account"
-            message = render_to_string("expenses/activation_email.html", {
+
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = account_activation_token.make_token(user)
+            activate_url = f"https://{current_site.domain}/activate/{uid}/{token}/"
+
+            # Plain text version (fallback)
+            text_message = f"""
+Hi {user.username},
+
+Please click the link below to activate your account:
+
+{activate_url}
+
+If you did not request this, please ignore this email.
+"""
+
+            # HTML version
+            html_message = render_to_string("expenses/activation_email.html", {
                 "user": user,
-                "domain": current_site.domain,
-                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                "token": account_activation_token.make_token(user),
+                "activate_url": activate_url,
             })
 
-            # Send activation email
+            # Send email
             try:
-                email = EmailMessage(
-                    subject,
-                    message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[user.email]
+                email = EmailMultiAlternatives(
+                    subject=subject,
+                    body=text_message,
+                    from_email=DEFAULT_FROM_EMAIL,
+                    to=[user.email],
                 )
-                email.content_subtype = "html"  # Ensure HTML emails render correctly
+                email.attach_alternative(html_message, "text/html")
                 email.send()
+
                 messages.success(request, "Account created! Check your email to activate your account.")
             except Exception as e:
                 logger.error(f"Error sending activation email: {e}")
-                messages.error(request, "Account created, but we couldn't send the activation email. Contact support.")
+                messages.error(
+                    request,
+                    "Account created, but we couldn't send the activation email. Contact support."
+                )
 
             return redirect("login")
     else:
