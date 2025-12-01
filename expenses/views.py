@@ -1,26 +1,25 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth
 from datetime import datetime, timedelta
 from .models import Expense, Category, Budget
-from .forms import ExpenseForm, CategoryForm, BudgetForm
+from .forms import ExpenseForm, CategoryForm, BudgetForm, CustomUserCreationForm
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import ExpenseSerializer
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from django.contrib.sites.shortcuts import get_current_site
-from .forms import CustomUserCreationForm
 from django.contrib.auth.models import User
 import logging
 from .utils import account_activation_token
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +28,12 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = False
+            user.is_active = False  # Require email confirmation
             user.save()
 
             # Send activation email
             current_site = get_current_site(request)
-            subject = "Activate your account"
+            subject = "Activate your Expense Tracker account"
             message = render_to_string("expenses/activation_email.html", {
                 "user": user,
                 "domain": current_site.domain,
@@ -45,19 +44,16 @@ def register(request):
             email = EmailMessage(subject, message, to=[user.email])
             email.send()
 
-            messages.success(request, "Account created! Check your email to activate.")
+            messages.success(request, "Account created! Check your email to activate your account.")
             return redirect("login")
-
     else:
         form = CustomUserCreationForm()
-
     return render(request, "expenses/register.html", {"form": form})
-
 
 
 def activate(request, uidb64, token):
     try:
-        uid = urlsafe_base64_decode(uidb64).decode()
+        uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
@@ -65,11 +61,12 @@ def activate(request, uidb64, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.success(request, "Your account is now activated! Please log in.")
+        login(request, user)
+        messages.success(request, "Your account has been activated!")
+        return redirect("dashboard")
+    else:
+        messages.error(request, "Activation link is invalid!")
         return redirect("login")
-
-    messages.error(request, "Activation link is invalid.")
-    return redirect("login")
 
 def logout_view(request):
     logout(request)
