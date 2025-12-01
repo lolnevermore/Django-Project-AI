@@ -11,17 +11,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ----------------------
 
 # Set DEBUG to False in production
-DEBUG = True
+DEBUG = False
 
 # SECRET_KEY should always come from an environment variable in production
 SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 
 # Add your domain
 ALLOWED_HOSTS = [
-    # "django-project-ai-production.up.railway.app",
-    # "expenseinsight.website",
-    # "www.expenseinsight.website",
-    '*'
+    "django-project-ai-production.up.railway.app",
+    "expenseinsight.website",
+    "www.expenseinsight.website",
 ]
 
 # SSL settings behind Railway proxy
