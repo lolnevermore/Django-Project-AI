@@ -26,19 +26,33 @@ logger = logging.getLogger(__name__)
 
 def register(request):
     if request.method == "POST":
-        try:
-            form = CustomUserCreationForm(request.POST)
-            if form.is_valid():
-                user = form.save(commit=False)
-                user.is_active = False
-                user.save()
-                # Email logic...
-        except Exception as e:
-            logger.exception("Registration failed!")
-            messages.error(request, "Registration failed. Check server logs.")
-            return redirect("register")
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False  # Require email confirmation
+            user.save()
+
+            # Send activation email
+            current_site = get_current_site(request)
+            subject = "Activate your account"
+            message = render_to_string("expenses/activation_email.html", {
+                "user": user,
+                "domain": current_site.domain,
+                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                "token": account_activation_token.make_token(user),
+            })
+            email = EmailMessage(subject, message, to=[user.email])
+            email.send(fail_silently=False)  # Will raise errors if email fails
+
+            messages.success(request, "Account created! Check your email to activate.")
+            return redirect("login")
+        else:
+            # Print errors to server logs for debugging
+            print("Form errors:", form.errors)
+            messages.error(request, "Please correct the errors below.")
     else:
         form = CustomUserCreationForm()
+
     return render(request, "expenses/register.html", {"form": form})
 
 
