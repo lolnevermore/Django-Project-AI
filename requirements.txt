@@ -23,6 +23,6 @@ django-environ==0.10.0
 gunicorn
 djangorestframework==3.16.1
 dj-database-url==2.1.0
-anymail
+anymail=9.0.0
 
 
