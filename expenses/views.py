@@ -89,20 +89,25 @@ If you did not request this, please ignore this email.
 
 def activate(request, uidb64, token):
     try:
+        # Decode the user ID
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
+    # Validate the token
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()
+
         login(request, user)
-        messages.success(request, "Your account has been activated!")
+        messages.success(request, "Your account has been activated successfully!")
         return redirect("dashboard")
-    else:
-        messages.error(request, "Activation link is invalid!")
-        return redirect("login")
+
+    # Invalid link
+    messages.error(request, "Activation link is invalid or has expired.")
+    return redirect("login")
+
 
 def logout_view(request):
     logout(request)
