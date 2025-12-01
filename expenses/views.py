@@ -29,7 +29,7 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = False  # Require email confirmation
+            user.is_active = False
             user.save()
 
             # Send activation email
@@ -41,15 +41,13 @@ def register(request):
                 "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                 "token": account_activation_token.make_token(user),
             })
+
             email = EmailMessage(subject, message, to=[user.email])
-            email.send(fail_silently=False)  # Will raise errors if email fails
+            email.send()
 
             messages.success(request, "Account created! Check your email to activate.")
             return redirect("login")
-        else:
-            # Print errors to server logs for debugging
-            print("Form errors:", form.errors)
-            messages.error(request, "Please correct the errors below.")
+
     else:
         form = CustomUserCreationForm()
 
