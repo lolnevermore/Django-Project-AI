@@ -20,10 +20,6 @@ whitenoise==6.11.0
 psycopg[binary]==3.2.11
 dj-database-url==2.1.0
 django-environ==0.10.0
-gunicorn
+gunicorn==23.0.0
 djangorestframework==3.16.1
-dj-database-url==2.1.0
-django-anymail>==13.1,<14
-
-
-
+django-anymail>=13.1,<14
