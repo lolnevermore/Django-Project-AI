@@ -145,7 +145,7 @@ ANYMAIL = {
     "MAILJET_SECRET_KEY": "144347d43946f55732f5881b51cc3f9c",
 }
 EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
-DEFAULT_FROM_EMAIL = "tasasr@gmail.com"
+DEFAULT_FROM_EMAIL = "tasasr@gmail.com" #My email
 
 
 # DEFAULT PRIMARY KEY
